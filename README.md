@@ -1,5 +1,5 @@
-CLEAR multi target tracking evaluation metrics
-==============================================
+# CLEAR multi target tracking evaluation metrics
+
 
 For arbitrary dimensional data.
 
@@ -8,9 +8,7 @@ described in:
 
 Keni, Bernardin, and Stiefelhagen Rainer. "Evaluating multiple object tracking performance: the CLEAR MOT metrics." EURASIP Journal on Image and Video Processing 2008 (2008).
     
-
-
-Usage:
+## Usage
 
     # 1d ground truth and measurements for 3 frames
     groundtruth = {0: [2, 3, 6],
@@ -33,3 +31,9 @@ Usage:
                   clear.get_object_count(),
                   clear.get_matches_count()]
 
+
+## 3rd party
+
+hungarian.py
+- source https://github.com/Globegitter/hungarian-algorithm
+- credits: Thom Dedecko, Markus Padourek
