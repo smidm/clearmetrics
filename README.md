@@ -1,11 +1,9 @@
 # CLEAR multi target tracking evaluation metrics
 
 
-For arbitrary dimensional data.
-
-
-described in:
-
+- implemented in Python
+- works for arbitrary dimensional data
+- described in:
 Keni, Bernardin, and Stiefelhagen Rainer. "Evaluating multiple object tracking performance: the CLEAR MOT metrics." EURASIP Journal on Image and Video Processing 2008 (2008).
     
 ## Usage
