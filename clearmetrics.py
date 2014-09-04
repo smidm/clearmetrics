@@ -64,6 +64,14 @@ class ClearMetrics(object):
         self.gt_matches = None
         self.gt_distances = None
 
+        # {mismatches: {frame: idx}, fp: {frame: idx}, fn: {frame: idx}}
+        self._problematic_frames = {'mismatches': {}, 'fp': {}, 'fn': {}}
+        self._methods_processed = {
+            'get_fp_count': False,
+            'get_fn_count': False,
+            'get_mismatches_count': False
+        }
+
     def match_sequence(self):
         """
         Evaluate the sequence.
@@ -84,6 +92,16 @@ class ClearMetrics(object):
                 self._match_frame(frame, prev_gt_matches)
             prev_gt_matches = self.gt_matches[frame]
 
+    def get_problematic_frames(self):
+        if not self._methods_processed['get_fp_count']:
+            self.get_fp_count()
+        if not self._methods_processed['get_fn_count']:
+            self.get_fn_count()
+        if not self._methods_processed['get_mismatches_count']:
+            self.get_mismatches_count()
+
+        return self._problematic_frames
+
     def get_fp_count(self):
         """
         Return number of false positives in the sequence.
@@ -91,9 +109,19 @@ class ClearMetrics(object):
         @return: FP count
         @rtype: int
         """
+        # prevents duplicate entries when user for some reason
+        # calls get_fp_count multiple times.
+        called_first_time = self._methods_processed['get_fp_count']
+
         count = 0
-        for matches in self.measurements_matches.values():
-            count += matches.count(-1)
+        for frame in self.measurements_matches:
+            matches = self.measurements_matches[frame]
+            indexes = _indexes(matches, -1)
+            count += len(indexes)
+            if len(indexes) > 0 and called_first_time:
+                self._problematic_frames['fp'][frame] = indexes
+
+        self._methods_processed['get_fp_count'] = True
         return count
 
     def get_fn_count(self):
@@ -103,9 +131,19 @@ class ClearMetrics(object):
         @return: FN count
         @rtype: int
         """
+        # prevents duplicate entries when user for some reason
+        # calls get_fn_count multiple times.
+        called_first_time = self._methods_processed['get_fn_count']
+
         count = 0
-        for matches in self.gt_matches.values():
-            count += matches.count(-1)
+        for frame in self.gt_matches:
+            matches = self.gt_matches[frame]
+            indexes = _indexes(matches, - 1)
+            count += len(indexes)
+            if len(indexes) > 0 and called_first_time:
+                self._problematic_frames['fn'][frame] = indexes
+
+        self._methods_processed['get_fn_count'] = True
         return count
 
     def get_mismatches_count(self):
@@ -118,6 +156,10 @@ class ClearMetrics(object):
         @return: number of mismatches in the sequence
         @rtype: int
         """
+        # prevents duplicate entries when user for some reason
+        # calls get_mismatches_count multiple times.
+        called_first_time = self._methods_processed['get_mismatches_count']
+
         frames = sorted(self.groundtruth.keys())
         last_matches = np.array(self.gt_matches[frames[0]])
         mismatches = 0
@@ -126,9 +168,17 @@ class ClearMetrics(object):
                 break
             matches = np.array(self.gt_matches[frame])
             mask_match_in_both_frames = (matches != -1) & (last_matches != -1)
-            mismatches += np.count_nonzero(
-                matches[mask_match_in_both_frames] != last_matches[mask_match_in_both_frames])
+            _test = matches[mask_match_in_both_frames] != last_matches[mask_match_in_both_frames]
+            num = np.count_nonzero(_test)
+            mismatches += num
+            if num > 0 and called_first_time:
+                indexes = _indexes((_test != 0).tolist(), True)
+                self._problematic_frames['mismatches'][frame] = indexes
+
             last_matches = matches
+
+        self._methods_processed['get_mismatches_count'] = True
+
         return mismatches
 
     def get_object_count(self):
@@ -260,3 +310,8 @@ class ClearMetrics(object):
             gt_distances[m[0]] = np.sqrt(sq_distance[m[0], m[1]])
 
         return gt_matches, gt_distances, measurements_matches
+
+
+def _indexes(l, el):
+    """returns all indexes where elements of l equals el """
+    return [i for i, x in enumerate(l) if x == el]
