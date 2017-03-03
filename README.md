@@ -1,4 +1,4 @@
-# Python implementation of CLEAR MOT multi target tracking evaluation metrics
+# Python implementation of CLEAR multi object tracking evaluation metrics 
 
 - works for arbitrary dimensional data
 - described in:
