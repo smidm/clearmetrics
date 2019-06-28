@@ -1,3 +1,7 @@
+# Deprecation
+
+:warning: Deprecated in favor of the great https://github.com/cheind/py-motmetrics! 
+
 # Python implementation of CLEAR multi object tracking evaluation metrics 
 
 - works for arbitrary dimensional data
